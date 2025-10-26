@@ -1,46 +1,17 @@
-# codemagic.yaml
 workflows:
-  android-build:
-    name: Android Build Workflow (MediCalc Pro)
-    instance_type: mac_mini_m1
-    max_build_duration: 60
-    
+  android-release:
+    name: MediCalc Pro Android Release (One-tap)
     environment:
-      flutter: 3.19.6 # Specific Flutter version compatible with Dart 3.3.x
-      java: 17
-      
-      vars:
-        ANDROID_SDK_ROOT: $HOME/programs/android-sdk-34
-        CM_GRADLE_VERSION: 8.6 # Specific Gradle version
-        APP_BUILD_NAME: 1.0.0
-        APP_BUILD_NUMBER: 1
-        
+      flutter: "3.19.6"
     scripts:
-      - name: Set up code signing
+      - name: Clean & get packages
         script: |
-          echo "Setting up keystore (requires Codemagic environment variables for production builds)"
-          
-      - name: Get Flutter packages
-        script: flutter pub get
-        
-      - name: Flutter build APK
+          flutter clean
+          flutter pub get
+      - name: Build release APK
         script: |
-          flutter build apk \
-            --release \
-            --build-name=$APP_BUILD_NAME \
-            --build-number=$APP_BUILD_NUMBER \
-            --target-platform=android-arm64
-            
+          flutter build apk --release
+          mkdir -p build/artifacts
+          cp build/app/outputs/flutter-apk/app-release.apk build/artifacts/MediCalc_Pro_v1.0.apk || true
     artifacts:
-      - build/app/outputs/flutter-apk/app-release.apk
-      
-    publishing:
-      # NOTE: 'triggering' MUST be a direct child of 'publishing'
-      triggering:
-        - success
-        - failure
-        
-      email:
-        # The 'email' block only contains recipient information
-        recipients:
-          - build-notifications@example.com
+      - build/artifacts/MediCalc_Pro_v1.0.apk
