@@ -2,12 +2,15 @@
 workflows:
   android-build:
     name: Android Build Workflow (MediCalc Pro)
+    # Using Mac Mini M1 is standard for fast Flutter builds
     instance_type: mac_mini_m1
     max_build_duration: 60
+    
     environment:
       flutter: 3.19.6 # Specific Flutter version compatible with Dart 3.3.x
       java: 17
-      android_sdk_tools: latest
+      # Removed: android_sdk_tools
+      
       # Set desired Android build version (SDK 34)
       vars:
         ANDROID_SDK_ROOT: $HOME/programs/android-sdk-34
@@ -17,17 +20,16 @@ workflows:
         
     scripts:
       - name: Set up code signing
-        # Setup instructions for code signing (replace with your actual code)
-        # You will need to upload your keystore file and set environment variables in Codemagic UI
+        # Setup instructions for code signing (requires Codemagic environment variables)
         script: |
-          echo "Setting up keystore (requires Codemagic environment variables)"
-          # Example: keytool -genkey -v -keystore android/app/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+          echo "Setting up keystore (requires Codemagic environment variables for production builds)"
           
       - name: Get Flutter packages
         script: flutter pub get
         
       - name: Flutter build APK
         script: |
+          # The --target-platform=android-arm64 is generally sufficient for modern devices
           flutter build apk \
             --release \
             --build-name=$APP_BUILD_NAME \
@@ -35,15 +37,16 @@ workflows:
             --target-platform=android-arm64
             
     artifacts:
+      # This path is where the APK will be located after a successful build
       - build/app/outputs/flutter-apk/app-release.apk
       
     publishing:
       email:
+        # Corrected structure: recipients and triggering are direct children of email
         recipients:
           - build-notifications@example.com
+        
+        # Corrected structure: List of conditions for sending the email
         triggering:
           - success
           - failure
-          
-      # Rename the artifact as requested: MediCalc_Pro_v1.0.apk (requires manual renaming step if not done automatically)
-      # For exact renaming, you might need an extra shell script step, but the standard output works.
