@@ -2,16 +2,13 @@
 workflows:
   android-build:
     name: Android Build Workflow (MediCalc Pro)
-    # Using Mac Mini M1 is standard for fast Flutter builds
     instance_type: mac_mini_m1
     max_build_duration: 60
     
     environment:
       flutter: 3.19.6 # Specific Flutter version compatible with Dart 3.3.x
       java: 17
-      # Removed: android_sdk_tools
       
-      # Set desired Android build version (SDK 34)
       vars:
         ANDROID_SDK_ROOT: $HOME/programs/android-sdk-34
         CM_GRADLE_VERSION: 8.6 # Specific Gradle version
@@ -20,7 +17,6 @@ workflows:
         
     scripts:
       - name: Set up code signing
-        # Setup instructions for code signing (requires Codemagic environment variables)
         script: |
           echo "Setting up keystore (requires Codemagic environment variables for production builds)"
           
@@ -29,7 +25,6 @@ workflows:
         
       - name: Flutter build APK
         script: |
-          # The --target-platform=android-arm64 is generally sufficient for modern devices
           flutter build apk \
             --release \
             --build-name=$APP_BUILD_NAME \
@@ -37,16 +32,15 @@ workflows:
             --target-platform=android-arm64
             
     artifacts:
-      # This path is where the APK will be located after a successful build
       - build/app/outputs/flutter-apk/app-release.apk
       
     publishing:
+      # NOTE: 'triggering' MUST be a direct child of 'publishing'
+      triggering:
+        - success
+        - failure
+        
       email:
-        # Corrected structure: recipients and triggering are direct children of email
+        # The 'email' block only contains recipient information
         recipients:
           - build-notifications@example.com
-        
-        # Corrected structure: List of conditions for sending the email
-        triggering:
-          - success
-          - failure
